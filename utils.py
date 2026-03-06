@@ -55,8 +55,8 @@ def clean_temperatures(df: pd.DataFrame) -> pd.DataFrame:
     Clean chiller supply/return temperature data.
 
     Normal operating ranges:
-        supply_temp_c:  4.0 – 12.0 °C
-        return_temp_c:  8.0 – 18.0 °C
+        supply_temp_c:  4.0 - 12.0 °C
+        return_temp_c:  8.0 - 18.0 °C
 
     TODO:
     - Handle missing values (choose a strategy and comment why)
@@ -70,7 +70,7 @@ def clean_flow_rates(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean pump flow rate data.
 
-    Normal operating range: 0 – 65 m³/h per pump
+    Normal operating range: 0 - 65 m³/h per pump
     Negative values are sensor errors.
 
     TODO:
@@ -85,7 +85,7 @@ def clean_power(df: pd.DataFrame) -> pd.DataFrame:
     """
     Clean chiller power consumption data.
 
-    Normal operating range when running: 80 – 320 kW
+    Normal operating range when running: 80 - 320 kW
     IMPORTANT: 0.0 kW is valid — it means the chiller is offline. Do NOT treat
     it as missing or as an error.
 
