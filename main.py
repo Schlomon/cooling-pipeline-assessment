@@ -39,7 +39,11 @@ sources["pump_flow"] = clean_flow_rates(sources["pump_flow"])
 
 
 # ── 4. RESAMPLING & ALIGNMENT ─────────────────────────────────────────────────
-# TODO: call resample_to_5min() with the cleaned time-series dataframes
+df = resample_to_5min({
+    "chiller_temps": sources["chiller_temps"],
+    "pump_flow": sources["pump_flow"],
+    "chiller_power": sources["chiller_power"],
+})
 # TODO: call align_events() and join the result onto the resampled dataframe
 
 

@@ -138,8 +138,30 @@ def resample_to_5min(dataframes: dict[str, pd.DataFrame]) -> pd.DataFrame:
     Returns:
         A single wide dataframe indexed at 5-min frequency.
     """
-    # TODO: implement
-    pass
+    target_index = pd.date_range(
+        start="2024-03-01 00:00", end="2024-03-07 23:55", freq="5min"
+    )
+
+    # Temperatures 1 min -> aggregate using mean to 5 min
+    # Mean best represents the window.
+    # Max would overstate, sum is nonsensical.
+    temps = dataframes["chiller_temps"].resample("5min").mean()
+
+    # Pump flow rates 30 s -> aggregate using mean to 5 min
+    # Mean gives the average flow rate, which is what we need COP.
+    # Max would overstate, sum would give volume.
+    flow = dataframes["pump_flow"].resample("5min").mean()
+
+    # Power is already 5 min
+    power = dataframes["chiller_power"]
+
+    # Merge all three on the common 5-min index.
+    # Reindex to the full target range to ensure no gaps. Not strictly required on the sample data but keep for code quality / reusability.
+    merged = temps.join(flow, how="outer").join(power, how="outer")
+    merged = merged.reindex(target_index)
+    merged.index.name = "timestamp"
+
+    return merged
 
 
 def align_events(events_df: pd.DataFrame, time_index: pd.DatetimeIndex) -> pd.DataFrame:
