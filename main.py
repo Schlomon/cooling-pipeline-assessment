@@ -10,8 +10,6 @@
 #   data/processed/dataset_clean.csv
 # ─────────────────────────────────────────────────────────────────────────────
 
-import pandas as pd
-from pathlib import Path
 from utils import (
     load_all_sources,
     summarize_dataset,
