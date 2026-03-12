@@ -226,5 +226,35 @@ def compute_cop(df: pd.DataFrame) -> pd.DataFrame:
     Adds columns: cop_chiller1, cop_chiller2 (NaN where not computable).
     Returns the dataframe with those columns added.
     """
-    # TODO: implement
-    pass
+    df = df.copy()
+
+    # Assumptions:
+    # 1. Split flow 50/50. The draw about the same power i.e. seem to be of equal size.
+    #    We could choose a weighted split basede on the per window power conspumtion,
+    #    however that would be circular (user power to calculate flow then divide by power)
+    # 2. power_kw == 0 => div by zero => COP undefined: return NaN
+    # 3. Any required input is NaN: propagate NaN
+
+    total_flow_m3h = (
+        df["pump1_flow_m3h"] + df["pump2_flow_m3h"] + df["pump3_flow_m3h"]
+    )
+    flow_per_chiller_m3h = total_flow_m3h / 2.0
+
+    # Convert m^3/h to kg/s
+    mass_flow_kg_s = flow_per_chiller_m3h * WATER_DENSITY / 3600.0
+
+    delta_t = df["return_temp_c"] - df["supply_temp_c"]
+
+    # Cooling capacity = mass_flow * Cp * ΔT
+    cooling_kw = mass_flow_kg_s * CP_WATER * delta_t
+
+    for chiller_num in [1, 2]:
+        power_col = f"chiller{chiller_num}_power_kw"
+        power = df[power_col]
+
+        # Replace 0 power with NaN so COP is undefined when offline
+        cop = cooling_kw / power.replace(0.0, np.nan)
+
+        df[f"cop_chiller{chiller_num}"] = cop
+
+    return df

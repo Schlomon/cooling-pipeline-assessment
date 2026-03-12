@@ -11,6 +11,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 import pandas as pd
+from pathlib import Path
 from utils import (
     load_all_sources,
     summarize_dataset,
@@ -49,12 +50,11 @@ df = df.join(events)
 
 
 # ── 5. DERIVED SIGNALS ────────────────────────────────────────────────────────
-# TODO: call compute_cop() and add COP columns to the dataframe
+df = compute_cop(df)
 
 
 # ── 6. OUTPUT ─────────────────────────────────────────────────────────────────
-# TODO: save the final dataframe to data/processed/dataset_clean.csv
-
-
-if __name__ == "__main__":
-    pass  # remove once you start implementing
+PROCESSED_DIR = Path("data/processed")
+PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+df.to_csv(PROCESSED_DIR / "dataset_clean.csv")
+print(f"\nSaved {len(df)} rows to {PROCESSED_DIR / 'dataset_clean.csv'}")
