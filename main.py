@@ -21,6 +21,7 @@ from utils import (
     resample_to_5min,
     align_events,
     compute_cop,
+    save_to_csv
 )
 
 
@@ -45,7 +46,7 @@ df = resample_to_5min({
     "pump_flow": sources["pump_flow"],
     "chiller_power": sources["chiller_power"],
 })
-events = align_events(sources["events"], pd.DatetimeIndex(df.index))
+events = align_events(sources["events"], df.index)
 df = df.join(events)
 
 
@@ -54,7 +55,4 @@ df = compute_cop(df)
 
 
 # ── 6. OUTPUT ─────────────────────────────────────────────────────────────────
-PROCESSED_DIR = Path("data/processed")
-PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-df.to_csv(PROCESSED_DIR / "dataset_clean.csv")
-print(f"\nSaved {len(df)} rows to {PROCESSED_DIR / 'dataset_clean.csv'}")
+save_to_csv(df)

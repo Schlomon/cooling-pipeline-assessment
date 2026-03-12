@@ -164,7 +164,7 @@ def resample_to_5min(dataframes: dict[str, pd.DataFrame]) -> pd.DataFrame:
     return merged
 
 
-def align_events(events_df: pd.DataFrame, time_index: pd.DatetimeIndex) -> pd.DataFrame:
+def align_events(events_df: pd.DataFrame, time_index: pd.Index) -> pd.DataFrame:
     """
     Make the event log joinable with the 5-minute time-series.
 
@@ -258,3 +258,9 @@ def compute_cop(df: pd.DataFrame) -> pd.DataFrame:
         df[f"cop_chiller{chiller_num}"] = cop
 
     return df
+
+
+def save_to_csv(df: pd.DataFrame) -> None:
+    PROCESSED_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    df.to_csv(PROCESSED_DATA_DIR / "dataset_clean.csv")
+
