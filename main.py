@@ -44,7 +44,8 @@ df = resample_to_5min({
     "pump_flow": sources["pump_flow"],
     "chiller_power": sources["chiller_power"],
 })
-# TODO: call align_events() and join the result onto the resampled dataframe
+events = align_events(sources["events"], pd.DatetimeIndex(df.index))
+df = df.join(events)
 
 
 # ── 5. DERIVED SIGNALS ────────────────────────────────────────────────────────

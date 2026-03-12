@@ -175,8 +175,34 @@ def align_events(events_df: pd.DataFrame, time_index: pd.DatetimeIndex) -> pd.Da
     Returns:
         A dataframe indexed like time_index with event-derived columns.
     """
-    # TODO: implement
-    pass
+    # Approach: create one boolean column per asset that had a fault.
+    # For each FAULT event, set True at that timestamp; for each FAULT_CLEAR,
+    # set False. Forward-fill to mark the entire fault window, then reindex to the 5 min grid.
+
+    faults = events_df[events_df["event_type"].isin(["FAULT", "FAULT_CLEAR"])]
+
+    # Get unique assets that have faults
+    fault_assets = faults["asset_id"].unique()
+
+    result = pd.DataFrame(index=time_index)
+
+    for asset in fault_assets:
+        asset_events = faults[faults["asset_id"] == asset].copy()
+
+        # Create a series: True at FAULT, False at FAULT_CLEAR
+        fault_flag = asset_events["event_type"].map(
+            {"FAULT": True, "FAULT_CLEAR": False}
+        )
+        fault_flag.index = asset_events.index
+
+        # Reindex to the 5-min grid and forward-fill.
+        # Fill timestamps before first event with False.
+        fault_flag = fault_flag.reindex(time_index, method="ffill").fillna(False)
+
+        col_name = f"{asset}_FAULT"
+        result[col_name] = fault_flag
+
+    return result
 
 
 # ── DERIVED SIGNALS ───────────────────────────────────────────────────────────
