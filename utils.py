@@ -57,13 +57,21 @@ def clean_temperatures(df: pd.DataFrame) -> pd.DataFrame:
     Normal operating ranges:
         supply_temp_c:  4.0 - 12.0 °C
         return_temp_c:  8.0 - 18.0 °C
-
-    TODO:
-    - Handle missing values (choose a strategy and comment why)
-    - Detect and handle physically implausible readings
     """
-    # TODO: implement
-    pass
+    df = df.copy()
+
+    # Setting implausible readings to NaN as they give no information -> handle them the same ways as missing values
+    df.loc[~df["supply_temp_c"].between(4.0, 12.0), "supply_temp_c"] = np.nan
+    df.loc[~df["return_temp_c"].between(8.0, 18.0), "return_temp_c"] = np.nan
+
+    # Limit interpolation to 15 min. More would likely be a real outage / sensor failure
+    # We choose linear for three resons:
+    #   1. Temperature changes smoothely
+    #   2. Data follows a sinusoidal pattern with a ~24 h period. At a 15 min scale, it is effectively linear.
+    #   3. Simplicity
+    df = df.interpolate(method="linear", limit=15)
+
+    return df
 
 
 def clean_flow_rates(df: pd.DataFrame) -> pd.DataFrame:
@@ -72,13 +80,18 @@ def clean_flow_rates(df: pd.DataFrame) -> pd.DataFrame:
 
     Normal operating range: 0 - 65 m³/h per pump
     Negative values are sensor errors.
-
-    TODO:
-    - Handle missing values
-    - Handle out-of-range values
     """
-    # TODO: implement
-    pass
+    df = df.copy()
+
+    # Replace values outside of the valid operating range 0-65 m^3/h with NaN
+    for col in df.columns:
+        df.loc[~df[col].between(0.0, 65.0), col] = np.nan
+
+    # Linear interpolation, limit 30 rows = 15 min at 30-sec resolution.
+    # Same reasoning as for temperatures
+    df = df.interpolate(method="linear", limit=30)
+
+    return df
 
 
 def clean_power(df: pd.DataFrame) -> pd.DataFrame:
@@ -88,13 +101,21 @@ def clean_power(df: pd.DataFrame) -> pd.DataFrame:
     Normal operating range when running: 80 - 320 kW
     IMPORTANT: 0.0 kW is valid — it means the chiller is offline. Do NOT treat
     it as missing or as an error.
-
-    TODO:
-    - Handle missing values
-    - Handle implausible non-zero readings
     """
-    # TODO: implement
-    pass
+    df = df.copy()
+
+    # Replace non-zero values outside the valid operating range 80-320 kW with NaN
+    for col in df.columns:
+        mask = (df[col] != 0) & ~df[col].between(80.0, 320.0)
+        df.loc[mask, col] = np.nan
+
+    # Forward-fill with limit to 15 min (3 rows at 5 min resolution).
+    # Even though power also follows a sinusoidal pattern, to keep it simple,
+    # we use forward fill to avoid generating values outside the valid range,
+    # which can occur when e.g. using linear interpolation between a valid zero and a non-zero value.
+    df = df.ffill(limit=3)
+
+    return df
 
 
 # ── RESAMPLING & ALIGNMENT ────────────────────────────────────────────────────

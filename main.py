@@ -33,7 +33,9 @@ for name, df in sources.items():
 
 
 # ── 3. CLEANING ───────────────────────────────────────────────────────────────
-
+sources["chiller_temps"] = clean_temperatures(sources["chiller_temps"])
+sources["chiller_power"] = clean_power(sources["chiller_power"])
+sources["pump_flow"] = clean_flow_rates(sources["pump_flow"])
 
 
 # ── 4. RESAMPLING & ALIGNMENT ─────────────────────────────────────────────────
