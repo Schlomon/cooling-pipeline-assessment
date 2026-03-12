@@ -33,7 +33,7 @@ for name, df in sources.items():
 
 
 # ── 3. CLEANING ───────────────────────────────────────────────────────────────
-# TODO: apply clean_* functions to the appropriate dataframes
+
 
 
 # ── 4. RESAMPLING & ALIGNMENT ─────────────────────────────────────────────────
