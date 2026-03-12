@@ -65,8 +65,8 @@ def clean_temperatures(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[~df["return_temp_c"].between(8.0, 18.0), "return_temp_c"] = np.nan
 
     # Limit interpolation to 15 min. More would likely be a real outage / sensor failure
-    # We choose linear for three resons:
-    #   1. Temperature changes smoothely
+    # We choose linear for three reasons:
+    #   1. Temperature changes smoothly
     #   2. Data follows a sinusoidal pattern with a ~24 h period. At a 15 min scale, it is effectively linear.
     #   3. Simplicity
     df = df.interpolate(method="linear", limit=15)
@@ -229,8 +229,8 @@ def compute_cop(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
     # Assumptions:
-    # 1. Split flow 50/50. The draw about the same power i.e. seem to be of equal size.
-    #    We could choose a weighted split basede on the per window power conspumtion,
+    # 1. Split flow 50/50. They draw about the same power i.e. seem to be of equal size.
+    #    We could choose a weighted split based on the per window power consumption,
     #    however that would be circular (user power to calculate flow then divide by power)
     # 2. power_kw == 0 => div by zero => COP undefined: return NaN
     # 3. Any required input is NaN: propagate NaN

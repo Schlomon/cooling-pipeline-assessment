@@ -23,34 +23,34 @@ from utils import (
 )
 
 
-# ── 1. INGESTION ──────────────────────────────────────────────────────────────
-sources = load_all_sources()
+def main():
+    # ── 1. INGESTION ──────────────────────────────────────────────────────────
+    sources = load_all_sources()
+
+    # ── 2. EXPLORATION ────────────────────────────────────────────────────────
+    for name, df in sources.items():
+        summarize_dataset(df, name)
+
+    # ── 3. CLEANING ───────────────────────────────────────────────────────────
+    sources["chiller_temps"] = clean_temperatures(sources["chiller_temps"])
+    sources["chiller_power"] = clean_power(sources["chiller_power"])
+    sources["pump_flow"] = clean_flow_rates(sources["pump_flow"])
+
+    # ── 4. RESAMPLING & ALIGNMENT ─────────────────────────────────────────────
+    df = resample_to_5min({
+        "chiller_temps": sources["chiller_temps"],
+        "pump_flow": sources["pump_flow"],
+        "chiller_power": sources["chiller_power"],
+    })
+    events = align_events(sources["events"], df.index)
+    df = df.join(events)
+
+    # ── 5. DERIVED SIGNALS ────────────────────────────────────────────────────
+    df = compute_cop(df)
+
+    # ── 6. OUTPUT ─────────────────────────────────────────────────────────────
+    save_to_csv(df)
 
 
-# ── 2. EXPLORATION ────────────────────────────────────────────────────────────
-for name, df in sources.items():
-    summarize_dataset(df, name)
-
-
-# ── 3. CLEANING ───────────────────────────────────────────────────────────────
-sources["chiller_temps"] = clean_temperatures(sources["chiller_temps"])
-sources["chiller_power"] = clean_power(sources["chiller_power"])
-sources["pump_flow"] = clean_flow_rates(sources["pump_flow"])
-
-
-# ── 4. RESAMPLING & ALIGNMENT ─────────────────────────────────────────────────
-df = resample_to_5min({
-    "chiller_temps": sources["chiller_temps"],
-    "pump_flow": sources["pump_flow"],
-    "chiller_power": sources["chiller_power"],
-})
-events = align_events(sources["events"], df.index)
-df = df.join(events)
-
-
-# ── 5. DERIVED SIGNALS ────────────────────────────────────────────────────────
-df = compute_cop(df)
-
-
-# ── 6. OUTPUT ─────────────────────────────────────────────────────────────────
-save_to_csv(df)
+if __name__ == "__main__":
+    main()
